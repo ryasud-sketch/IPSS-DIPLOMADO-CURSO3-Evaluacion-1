@@ -65,6 +65,19 @@ app.get('/api/selecciones', (req, res) => {
   res.json(resultado);
 });
 
+// MAP: crea una lista resumida de selecciones
+app.get('/api/selecciones/resumen', (req, res) => {
+  const resumen = selecciones.map(seleccion => ({
+    id: seleccion.id,
+    nombre: seleccion.nombre,
+    continente: seleccion.continente,
+    cantidadCopas: seleccion.copas.length,
+    golesFavor: seleccion.golesFavor
+  }));
+
+  res.json(resumen);
+});
+
 // GET /api/selecciones/:id
 app.get('/api/selecciones/:id', (req, res) => {
   const seleccion = selecciones.find(s => s.id === parseInt(req.params.id));
@@ -78,6 +91,19 @@ app.get('/api/selecciones/:id', (req, res) => {
 app.get('/api/copas', (req, res) => {
   const todasLasCopas = selecciones.flatMap(s => s.copas);
   res.json(todasLasCopas);
+});
+
+// FLATMAP: relaciona cada copa con la selección que la ganó
+app.get('/api/copas/detalle', (req, res) => {
+  const copasDetalle = selecciones.flatMap(seleccion =>
+    seleccion.copas.map(copa => ({
+      seleccion: seleccion.nombre,
+      continente: seleccion.continente,
+      copa
+    }))
+  );
+
+  res.json(copasDetalle);
 });
 
 // GET /api/copas/:seleccion (Copas por NOMBRE de la selección)
@@ -155,6 +181,24 @@ app.get('/api/worldcup/2026/final', (req, res) => {
 });
 
 // ── INICIO DEL SERVIDOR ───────────────────────────────────────────────────
+// BÚSQUEDA ENTRE ENTIDADES: partidos de una selección en el torneo 2026
+app.get('/api/selecciones/:nombre/partidos', (req, res) => {
+  const nombre = req.params.nombre.toLowerCase();
+  const semifinales = Object.entries(torneo2026.semifinales).map(([numero, partido]) => ({
+    fase: `Semifinal ${numero}`,
+    ...partido
+  }));
+  const partidos = torneo2026.final
+    ? [...semifinales, { fase: 'Final', ...torneo2026.final }]
+    : semifinales;
+  const resultado = partidos.filter(partido =>
+    partido.equipo1.toLowerCase() === nombre ||
+    partido.equipo2.toLowerCase() === nombre
+  );
+
+  res.json(resultado);
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
