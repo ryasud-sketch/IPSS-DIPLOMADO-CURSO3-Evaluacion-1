@@ -86,7 +86,7 @@ app.get('/api/selecciones/:id', (req, res) => {
 });
 
 // ── CON LÓGICA ⭐ ──────────────────────────────────────────────────────────
-++
++
 // GET /api/copas (Todas las copas en una lista plana)
 app.get('/api/copas', (req, res) => {
   const todasLasCopas = selecciones.flatMap(s => s.copas);
